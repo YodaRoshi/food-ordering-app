@@ -1,40 +1,43 @@
 import { useAuth0 } from "@auth0/auth0-react";
 import { useMutation, useQuery } from "react-query";
 import { toast } from "sonner";
+import { User } from "@/types"
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
 export const useGetMyUser = () => {
-    const {getAccessTokenSilently} = useAuth0();
-
-    const getMyUserRequest = async ()=> {
-        const accessToken = await getAccessTokenSilently();
-        const response = await fetch(`${API_BASE_URL}/api/my/user`, {
-            method: "GET",
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-                "Content-Type": "application/json"
-            },
-        });
-        if(!response.ok){
-            throw  new Error("Failed to fetch user");
-        }
-
-        return response.json();
+    const { getAccessTokenSilently } = useAuth0();
+  
+    const getMyUserRequest = async (): Promise<User> => {
+      const accessToken = await getAccessTokenSilently();
+  
+      const response = await fetch(`${API_BASE_URL}/api/my/user`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to fetch user");
+      }
+  
+      return response.json();
     };
-
-    const { 
-        data: currentUser, 
-        isLoading, 
-        error,
+  
+    const {
+      data: currentUser,
+      isLoading,
+      error,
     } = useQuery("fetchCurrentUser", getMyUserRequest);
-
-    if(error){
-        toast.error(error.toString());
+  
+    if (error) {
+      toast.error(error.toString());
     }
-
-    return { currentUser, isLoading }
-};
+  
+    return { currentUser, isLoading };
+  };
 
 type CreateUserRequest = {
     auth0Id: string;
@@ -83,43 +86,43 @@ type UpdateMyUserRequest = {
 }
 
 export const useUpdateMyUser = () => {
-    const { getAccessTokenSilently  } = useAuth0();
-
-    const useUpdateMyUserRequest = async (formData: UpdateMyUserRequest) => {
-        const accessToken = await getAccessTokenSilently();
-        const response = await fetch(`$API_BASE_URL}/api/my/user`,{
-            method: "PUT",
-                headers: {
-                    Authorization: `bearer${accessToken}`,
-                    "Content-Type": "application/json",
-                },
-                body:JSON.stringify(formData),
-        });
-
-        if(!response){
-            throw new Error("Faiiled to update user");
-        }
-
+    const { getAccessTokenSilently } = useAuth0();
+  
+    const updateMyUserRequest = async (formData: UpdateMyUserRequest) => {
+      const accessToken = await getAccessTokenSilently();
+  
+      const response = await fetch(`${API_BASE_URL}/api/my/user`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to update user");
+      }
+  
+      return response.json();
     };
-
-    const { 
-        mutateAsync: updateUser, 
-        isLoading, 
-        isSuccess, 
-        error,
-        reset,
-    } = useMutation(useUpdateMyUserRequest);
-
-    if(isSuccess){
-        toast.success("User profile updated!")
+  
+    const {
+      mutateAsync: updateUser,
+      isLoading,
+      isSuccess,
+      error,
+      reset,
+    } = useMutation(updateMyUserRequest);
+  
+    if (isSuccess) {
+      toast.success("User profile updated!");
     }
-
-    if(error){
-        toast.error(error.toString());
-        // it clears the error state from this request.
-        // we don't want this error toast appearing anytime the component rerenders for whatever reason
-        reset();
+  
+    if (error) {
+      toast.error(error.toString());
+      reset();
     }
-
+  
     return { updateUser, isLoading };
-};
+  };
